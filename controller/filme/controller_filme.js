@@ -13,41 +13,51 @@ const configMessages = require('../modulo/configMessages.js')
 const filmeDAO = require('../../model/DAO/filme/filme.js')
 
 // função para inserir um novo filme
-const inserirNovoFilme = async function(filme){
+const inserirNovoFilme = async function(filme, contentType){
 
     // cria uma copia dos jsons do arquivo de configuração de mensagens
     let customMessage = JSON.parse(JSON.stringify(configMessages))
 
-    if(filme.nome == '' || filme.nome == null || filme.nome == undefined || filme.nome.length > 80){
-        customMessage.ERROR_BAD_REQUEST.field = '[NOME] INVALIDO'
-    }else if(filme.sinopse == '' || filme.sinopse == null || filme.sinopse == undefined){
-        customMessage.ERROR_BAD_REQUEST.field = '[SINOPSE] INVALIDO'
-    }else if(filme.capa == '' || filme.capa == null || filme.capa == undefined || filme.capa.length > 255){
-        customMessage.ERROR_BAD_REQUEST.field = '[CAPA] INVALIDO'
-    }else if(filme.data_lancamento == '' || filme.data_lancamento == null || filme.data_lancamento == undefined || filme.data_lancamento.length != 10){
-        customMessage.ERROR_BAD_REQUEST.field = '[DATA DE LANÇAMENTO] INVALIDO'
-    }else if(filme.duracao == '' || filme.duracao == null || filme.duracao == undefined || filme.duracao.length < 5){
-        customMessage.ERROR_BAD_REQUEST.field = '[DURAÇÂO] INVALIDO'
-    }else if(filme.valor == undefined || isNaN(filme.valor) || filme.valor.length > 5){
-        customMessage.ERROR_BAD_REQUEST.field = '[VALOR] INVALIDO'
-    }else if(filme.avaliacao == undefined || isNaN(filme.avaliacao) || filme.avaliacao.length > 3){
-        customMessage.ERROR_BAD_REQUEST.field = '[AVALIAÇÂO] INVALIDO'
-    }else{
-        let result = filmeDAO.insertFilme(filme)
+    try {
+    
 
-        if(result){
-            customMessage.DEFAULT_MESSAGE.status = customMessage.SUCESS_CREATED_ITEM.status
-            customMessage.DEFAULT_MESSAGE.status_code = customMessage.SUCESS_CREATED_ITEM.status_code
-            customMessage.DEFAULT_MESSAGE.message = customMessage.SUCESS_CREATED_ITEM.message
+        if(String(contentType).toUpperCase() == 'APPLICATION/JSON'){
+
+            // chama a funcao para validar a entrada de dados do filme
+            let validar = await validarDados(filme)
+
+            // retorna json de erro caso algum atributo seja invalido,
+            // se nao retornara um false que significa nao teve erro
+            if(validar){
+                return validar // 400
+            }else{
+                // encaminha os dados do filme para o dao inserir no banco de dados
+                let result = await filmeDAO.insertFilme(filme)
+
+                if(result){ // 201
+                    customMessage.DEFAULT_MESSAGE.status = customMessage.SUCESS_CREATED_ITEM.status
+                    customMessage.DEFAULT_MESSAGE.status_code = customMessage.SUCESS_CREATED_ITEM.status_code
+                    customMessage.DEFAULT_MESSAGE.message = customMessage.SUCESS_CREATED_ITEM.message
+
+                    return customMessage.DEFAULT_MESSAGE // 201
+                }else{ // erro 500 model
+                    return customMessage.ERROR_INTERNAL_SERVER_MODEL // 500 model
+                }
+            }    
+                
         }else{
-            customMessage.DEFAULT_MESSAGE.status = customMessage.ERROR_INTERNAL_SERVER_MODEL.status
-            customMessage.DEFAULT_MESSAGE.status_code = customMessage.ERROR_INTERNAL_SERVER_MODEL.status_code
-            customMessage.DEFAULT_MESSAGE.message = customMessage.ERROR_INTERNAL_SERVER_MODEL.message
+            return customMessage.ERROR_CONTENT_TYPE // 415
         }
-
-        return customMessage.DEFAULT_MESSAGE
+    
+    } catch (error) {
+        return customMessage.ERROR_INTERNAL_SERVER_CONTROLLER // 500 controller
     }
+    
+    
 }
+
+
+
 
 // função para atualizar um filme existente
 const atualizarFilme = async function(){
@@ -67,6 +77,39 @@ const buscarFilme = async function(){
 // função para excluir um filme
 const excluirFilme = async function(){
 
+}
+
+// função para validar os dados do cadastro do filme
+const validarDados = async function(filme){
+
+    // cria uma copia dos jsons do arquivo de configuração de mensagens
+    let customMessage = JSON.parse(JSON.stringify(configMessages))
+
+
+    if(filme.nome == '' || filme.nome == null || filme.nome == undefined || filme.nome.length > 80){
+        customMessage.ERROR_BAD_REQUEST.field = '[NOME] INVALIDO'
+        return customMessage.ERROR_BAD_REQUEST
+    }else if(filme.sinopse == '' || filme.sinopse == null || filme.sinopse == undefined){
+        customMessage.ERROR_BAD_REQUEST.field = '[SINOPSE] INVALIDO'
+        return customMessage.ERROR_BAD_REQUEST
+    }else if(filme.capa == '' || filme.capa == null || filme.capa == undefined || filme.capa.length > 255){
+        customMessage.ERROR_BAD_REQUEST.field = '[CAPA] INVALIDO'
+        return customMessage.ERROR_BAD_REQUEST
+    }else if(filme.data_lancamento == '' || filme.data_lancamento == null || filme.data_lancamento == undefined || filme.data_lancamento.length != 10){
+        customMessage.ERROR_BAD_REQUEST.field = '[DATA DE LANÇAMENTO] INVALIDO'
+        return customMessage.ERROR_BAD_REQUEST
+    }else if(filme.duracao == '' || filme.duracao == null || filme.duracao == undefined || filme.duracao.length < 5){
+        customMessage.ERROR_BAD_REQUEST.field = '[DURAÇÂO] INVALIDO'
+        return customMessage.ERROR_BAD_REQUEST
+    }else if(filme.valor == undefined || isNaN(filme.valor) || filme.valor.length > 5){
+        customMessage.ERROR_BAD_REQUEST.field = '[VALOR] INVALIDO'
+        return customMessage.ERROR_BAD_REQUEST
+    }else if(filme.avaliacao == undefined || isNaN(filme.avaliacao) || filme.avaliacao.length > 3){
+        customMessage.ERROR_BAD_REQUEST.field = '[AVALIAÇÂO] INVALIDO'
+        return customMessage.ERROR_BAD_REQUEST
+    }else{
+        return false
+    }    
 }
 
 module.exports = {

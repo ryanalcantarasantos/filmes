@@ -21,14 +21,17 @@ const corsOptions = {
 app.use(cors(corsOptions))
 
 // import das controllers do projeto
-const conrollerFilme = require('./controller/filme/controller_filme.js')
+const controllerFilme = require('./controller/filme/controller_filme.js')
 
 // endpoints
 app.post('/v1/senai/locadora/filme',bodyParserJSON, async function(request, response){
     // recebendo o body da requisição
     let dados = request.body
 
-    let result = await controllerFilme.inserirNovoFilme(dados)
+    // recebendo o tipo de dados da requisicao para validar se é json
+    let contentType = request.headers['content-type']
+
+    let result = await controllerFilme.inserirNovoFilme(dados, contentType)
 
     response.status(result.status_code)
     response.json(result)
