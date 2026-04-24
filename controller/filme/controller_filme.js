@@ -66,12 +66,67 @@ const atualizarFilme = async function(){
 
 // função para retornar todos os filmes existentes
 const listarFilme = async function(){
+    // cria uma copia dos jsons do arquivo de configuração de mensagens
+    let customMessage = JSON.parse(JSON.stringify(configMessages))
 
+    try {
+        // chama a funcao do dao pra retornar a lista de filmes do bd
+        let result = await filmeDAO.selectAllFilme()
+
+        // validacao para verificar se o dao conseguiu processar o script no bd
+        if(result){
+            // validacao para verificar se o conteudo do array tem dados de retorno
+            // ou se esta vazio
+            if(result.length > 0){
+                customMessage.DEFAULT_MESSAGE.status = customMessage.SUCCES_RESPONSE.status
+                customMessage.DEFAULT_MESSAGE.status_code = customMessage.SUCCES_RESPONSE.status_code
+                customMessage.DEFAULT_MESSAGE.response.count = result.length
+                customMessage.DEFAULT_MESSAGE.response.filme = result
+
+                return customMessage.DEFAULT_MESSAGE // 200
+            }else{
+                return customMessage.ERROR_NOT_FOUND // 404
+            }
+        }else{
+            return customMessage.ERROR_INTERNAL_SERVER_MODEL // 500 model
+        }
+    } catch (error) {
+        return customMessage.ERROR_INTERNAL_SERVER_CONTROLLER // 500 controller
+    }
 }
 
 // função para retornar um filme filtrando pelo id
-const buscarFilme = async function(){
+const buscarFilme = async function(id){
+    // cria uma copia dos jsons do arquivo de configuração de mensagens
+    let customMessage = JSON.parse(JSON.stringify(configMessages))
+    
+    try {
+        // validacao para garantir que o id seja um numero valido
+        if(String(id).replaceAll(' ', '') == '' || id == null || id == undefined || isNaN(id)){
+            customMessage.ERROR_BAD_REQUEST.field = '[ID] INVALIDO'
+            return customMessage.ERROR_BAD_REQUEST // 400
+        }else{
+            // chama a funcao dao para pesquisar o filme pelo id
+            let result = await filmeDAO.selectByIdFilme(id)
+            // validacao para verificar se o dao retornou os dados ou um false
+            if(result){
+                // validacao para verificar se o dao tem algum dado no array
+                if(result.length > 0){
+                    customMessage.DEFAULT_MESSAGE.status = customMessage.SUCCES_RESPONSE.status
+                    customMessage.DEFAULT_MESSAGE.status_code = customMessage.SUCCES_RESPONSE.status_code
+                    customMessage.DEFAULT_MESSAGE.response.filme = result
 
+                    return customMessage.DEFAULT_MESSAGE // 200
+                }else{
+                    return customMessage.ERROR_NOT_FOUND // 404
+                }
+            }else{
+                return customMessage.ERROR_INTERNAL_SERVER_MODEL // 500 model
+            }
+        }
+    } catch (error) {
+        return customMessage.ERROR_INTERNAL_SERVER_CONTROLLER // 500 controller
+    }
 }
 
 // função para excluir um filme
