@@ -26,6 +26,7 @@ const ERROR_NOT_FOUND = {status: false, status_code: 404, message: 'não foram e
 // mensagens de sucesso do projeto de filmes
 const SUCESS_CREATED_ITEM = {status: true, status_code: 201, message: 'item inserido com sucesso'}
 const SUCCES_RESPONSE = {status: true, status_code: 200}
+const SUCCESS_UPDATED_ITEM = {status: true, status_code: 200, message: 'item atualizado com sucesso'}
 
 module.exports = {
     DEFAULT_MESSAGE,
@@ -35,5 +36,6 @@ module.exports = {
     ERROR_CONTENT_TYPE,
     ERROR_NOT_FOUND,
     SUCESS_CREATED_ITEM,
-    SUCCES_RESPONSE
+    SUCCES_RESPONSE,
+    SUCCESS_UPDATED_ITEM
 }

@@ -56,6 +56,24 @@ app.get('/v1/senai/locadora/filme/:id', async function(request, response){
     response.json(result)
 })
 
+app.put('/v1/senai/locadora/filme/:id', bodyParserJSON, async function(request, response){
+    // recebe o content type da requisicao para validar se é json
+    let contentType = request.headers['content-type']
+
+    // recebe o id do registro a ser atualizado
+    let id = request.params.id
+
+    // recebe os dados do body que serao modificados no bd
+    let dados = request.body
+
+    // chama a funcao para atualizar o filme devemos encaminhar as 3 variaveis na mesma sequencia que a funcao foi criada na controller
+    let result = await controllerFilme.atualizarFilme(dados, id, contentType)
+
+    response.status(result.status_code)
+    response.json(result)
+    
+})
+
 
 //fazer o start na api (aguardando as requisicoes)
 app.listen(8080, function(){
